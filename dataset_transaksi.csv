@@ -1,0 +1,16 @@
+TID,Barang
+T1,Rice;Apple;Pen;Bag
+T2,Rice;Apple;Pen
+T3,Rice;Apple;Bag;Blanket
+T4,Rice;Pen;Bag;Blanket
+T5,Rice;Apple;Pen;Bag
+T6,Rice;Apple;Pen;Blanket
+T7,Rice;Apple;Bag;Blanket
+T8,Rice;Pen;Bag;Blanket
+T9,Coffee;Bread;Milk
+T10,Coffee;Bread;Milk;Sugar
+T11,Coffee;Bread
+T12,Coffee;Milk;Sugar
+T13,Coffee;Bread;Milk;Sugar
+T14,Coffee;Milk
+T15,Coffee;Bread;Sugar

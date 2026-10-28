@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+"""
+SOLUSI INCOMPLETE #1: Konstruksi FP-Tree
+==========================================
+File ini berisi kunci jawaban lengkapan untuk incomplete_1_construct_tree.py
+"""
+import csv
+from collections import defaultdict
+
+
+class Node:
+    """Node dalam FP-Tree."""
+
+    def __init__(self, item=None, count=0, parent=None):
+        self.item = item
+        self.count = count
+        self.parent = parent
+        self.children = {}
+        self.next = None
+
+    def display(self, indent=0):
+        if self.item is None:
+            label = "root"
+        else:
+            label = f"{self.item}:{self.count}"
+        print("  " * indent + label)
+        for child in self.children.values():
+            child.display(indent + 1)
+
+
+def load_transactions(filepath):
+    transactions = []
+    with open(filepath, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            items = row["Barang"].split(";")
+            items = [item.strip() for item in items if item.strip()]
+            transactions.append(items)
+    return transactions
+
+
+def count_items(transactions):
+    item_counts = defaultdict(int)
+    for transaction in transactions:
+        for item in transaction:
+            item_counts[item] += 1
+    return dict(item_counts)
+
+
+def filter_and_sort(transactions, item_counts, frequent_items):
+    sorted_transactions = []
+    for transaction in transactions:
+        filtered = [item for item in transaction if item in frequent_items]
+        filtered.sort(key=lambda x: item_counts[x], reverse=True)
+        sorted_transactions.append(filtered)
+    return sorted_transactions
+
+
+def build_header_table(frequent_items, item_counts):
+    header_table = {}
+    for item in frequent_items:
+        header_table[item] = [item_counts[item], None]
+    return header_table
+
+
+def update_node_link(header_table, item, new_node):
+    """
+    LENGKAP: Update node-link di header table untuk item tertentu.
+    """
+    if header_table[item][1] is None:
+        # Belum ada node pertama, set ini sebagai pertama
+        header_table[item][1] = new_node
+    else:
+        # Traverse ke node terakhir lewat link, lalu append
+        link_node = header_table[item][1]
+        while link_node.next is not None:
+            link_node = link_node.next
+        link_node.next = new_node
+
+
+def build_fp_tree(transactions, header_table, frequent_items):
+    """
+    LENGKAP: Bangun FP-Tree dari daftar transaksi yang sudah disortir.
+    """
+    root = Node(item=None)
+
+    for transaction in transactions:
+        current_node = root
+        for item in transaction:
+            if item in current_node.children:
+                # Item sudah ada di anak, naik ke bawah
+                current_node = current_node.children[item]
+                current_node.count += 1
+            else:
+                # LENGKAP: Buat node baru dan masukkan ke children
+                new_node = Node(item=item, count=1, parent=current_node)
+                current_node.children[item] = new_node
+                # LENGKAP: Update node-link
+                update_node_link(header_table, item, new_node)
+                # LENGKAP: Naik ke node baru
+                current_node = new_node
+    return root
+
+
+def run():
+    DATA_FILE = "dataset_transaksi.csv"
+    MIN_SUPPORT = 2
+
+    transactions = load_transactions(DATA_FILE)
+    item_counts = count_items(transactions)
+    print("Perhitungan frekuensi item:")
+    for item, count in sorted(item_counts.items(), key=lambda x: x[1], reverse=True):
+        print(f"  {item:12s}: {count}")
+
+    frequent_items = set()
+    for item, count in item_counts.items():
+        if count >= MIN_SUPPORT:
+            frequent_items.add(item)
+
+    sorted_tx = filter_and_sort(transactions, item_counts, frequent_items)
+    print(f"\nFrequent items: {frequent_items}")
+
+    header_table = build_header_table(frequent_items, item_counts)
+    root = build_fp_tree(sorted_tx, header_table, frequent_items)
+
+    print("\n=== Struktur FP-Tree ===")
+    root.display()
+
+    print("\n=== Header Table ===")
+    for item, info in sorted(header_table.items(), key=lambda x: x[1][0], reverse=True):
+        print(f"  {item:12s}: count={info[0]}, first_link={info[1]}")
+
+    print("\n=== VERIFIKASI ===")
+    all_correct = True
+    for item, info in header_table.items():
+        if info[1] is None:
+            print(f"  ERROR: '{item}' tidak memiliki node-link!")
+            all_correct = False
+
+    if all_correct:
+        print("  Semua node-link terhubung dengan benar!")
+
+    print("\nBandingkan struktur pohon di atas dengan fp_growth_lengkap.py")
+
+
+if __name__ == "__main__":
+    run()
